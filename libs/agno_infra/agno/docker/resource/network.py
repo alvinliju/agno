@@ -60,9 +60,17 @@ class DockerNetwork(DockerResource):
         # Validate that the network is created
         logger.debug("Validating network is created")
         if network_object is not None:
-            # TODO: validate that the network was actually created
-            self.active_resource = network_object
-            return True
+            try:
+                network_info = docker_client.api_client.networks.get(network_object.id)
+                if network_info.id == network_object.id:
+                    logger.info(f"Network {self.name} validated: {network_object.id[:12]}")
+                    self.active_resource = network_object
+                    return True
+            except Exception as e:
+                logger.warning(f"Network {self.name} validation failed: {e}")
+
+            logger.debug("Network validation failed")
+            return False
 
         logger.debug("Network not found")
         return False
